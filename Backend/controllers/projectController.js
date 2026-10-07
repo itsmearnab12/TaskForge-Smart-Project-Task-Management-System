@@ -182,9 +182,161 @@ const deleteProject = async (req, res) => {
   }
 };
 
+const assignedProjectManager = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { projectManager } = req.body;
+
+    if (!projectManager) {
+      return res.status(400).json({
+        message: "Project manager ID is required",
+      });
+    }
+
+    const manager = await User.findById(projectManager);
+
+    if (!manager) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    if (manager.role !== "project_manager" && manager.role !== "admin") {
+      return res.status(400).json({
+        message: "Selected user cannot be assigned as project manager",
+      });
+    }
+
+    const project = await Project.findById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found",
+      });
+    }
+
+    project.projectManager = projectManager;
+
+    await project.save();
+
+    res.status(200).json({
+      message: "Project manager assigned successfully",
+      project,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+const addTeamMember = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        message: "User ID is required",
+      });
+    }
+
+    const project = await Project.findById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    if (user.role !== "team_member") {
+      return res.status(400).json({
+        message: "Onlly team member can be added to the project",
+      });
+    }
+
+    if (project.teamMembers.includes(userId)) {
+      return res.status(400).json({
+        message: "User is already a team member of this project",
+      });
+    }
+
+    project.teamMembers.push(userID);
+
+    await project.save();
+
+    res.status(200).json({
+      messsage: "Team member added successfully",
+      project,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+const removeTeamMember = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        message: "User ID is required",
+      });
+    }
+
+    const project = await Project.findById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found",
+      });
+    }
+
+    const isMember = project.teamMembers.some(
+      (memberId) => memberId.toString() === userId,
+    );
+
+    if (!isMember) {
+      return res.status(400).json({
+        messsage: "User is not a member of this project",
+      });
+    }
+
+    project.teamMembers = project.teamMembers.filter(
+      (memberId) => memberId.toString() !== userId,
+    );
+
+    await project.save();
+
+    res.status(200).json({
+      message: "Team member removed successfully",
+      project,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
 module.exports = {
   createProject,
   getAllProjects,
   getProjectById,
   updateProject,
+  deleteProject,
+  assignedProjectManager,
+  addTeamMember,
+  removeTeamMember,
 };
