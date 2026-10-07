@@ -3,6 +3,8 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const projectRoutes = require("./routes/projectRoutes");
+const taskRoutes = require("./routes/taskRoutes");
+const commentRoutes = require("./routes/commentRoutes");
 
 dotenv.config();
 
@@ -17,6 +19,8 @@ app.get("/", (req, res) => {
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/project", projectRoutes);
+app.use("/api/task", taskRoutes);
+app.use("/api/comment", commentRoutes);
 
 const port = 3000;
 
