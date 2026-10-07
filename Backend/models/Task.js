@@ -27,7 +27,7 @@ const taskSchema = new mongoose.Schema(
 
     priority: {
       type: String,
-      enum: ["low", "medium", "heigh"],
+      enum: ["low", "medium", "high"],
       default: "medium",
     },
 
@@ -47,6 +47,31 @@ const taskSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
+    attachments: [
+      {
+        fileName: {
+          type: String,
+          required: true,
+        },
+
+        filePath: {
+          type: String,
+          required: true,
+        },
+
+        uploadedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+
+        uploadedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

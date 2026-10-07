@@ -1,6 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
+const upload = require("../middleware/uploadMiddlware");
 const {
   createTask,
   getAllTasks,
@@ -11,6 +12,8 @@ const {
   updateTaskStatus,
   updateTaskPriority,
   updateTaskDueDate,
+  uploadTaskAttachment,
+  getTaskAttachments,
 } = require("../controllers/taskController");
 
 const router = express.Router();
@@ -76,6 +79,21 @@ router.put(
   authMiddleware,
   roleMiddleware("admin", "project_manager"),
   updateTaskDueDate,
+);
+
+router.post(
+  "/:id/attachments",
+  authMiddleware,
+  roleMiddleware("admin", "project_manager", "team_member"),
+  upload.single("file"),
+  uploadTaskAttachment,
+);
+
+router.get(
+  "/:id/attachments",
+  authMiddleware,
+  roleMiddleware("admin", "project_manager", "team_member"),
+  getTaskAttachments,
 );
 
 module.exports = router;

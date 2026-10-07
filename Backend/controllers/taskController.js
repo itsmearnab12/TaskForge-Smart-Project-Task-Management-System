@@ -401,6 +401,70 @@ const updateTaskDueDate = async (req, res) => {
   }
 };
 
+const uploadTaskAttachment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const task = await Task.findById(id);
+
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Please upload a file",
+      });
+    }
+
+    task.attachments.push({
+      fileName: req.file.originalname,
+      filePath: req.file.path,
+      uploadedBy: req.userId,
+    });
+
+    await task.save();
+
+    res.status(200).json({
+      message: "File uploaded successfully",
+      attachment: task.attachments[task.attachments.length - 1],
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+const getTaskAttachments = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const task = await Task.findById(id)
+      .select("title attachments")
+      .populate("attachments.uploadedBy", "name email role");
+
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "Task attachments fetched successfully",
+      attachments: task.attachments,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
 module.exports = {
   createTask,
   getAllTasks,
@@ -411,4 +475,6 @@ module.exports = {
   updateTaskStatus,
   updateTaskPriority,
   updateTaskDueDate,
+  uploadTaskAttachment,
+  getTaskAttachments,
 };
