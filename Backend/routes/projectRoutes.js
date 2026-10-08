@@ -11,6 +11,12 @@ const {
   addTeamMember,
   removeTeamMember,
 } = require("../controllers/projectController");
+const validate = require("../middleware/validationMiddleware");
+const {
+  createProjectValidation,
+  projectQueryValidation,
+  projectIdValidation,
+} = require("../middleware/projectValidation");
 
 const router = express.Router();
 
@@ -70,4 +76,30 @@ router.put(
   removeTeamMember,
 );
 
+router.post(
+  "/",
+  authMiddleware,
+  roleMiddleware("admin", "project_manger"),
+  createProjectValidation,
+  validate,
+  createProject,
+);
+
+router.get(
+  "/",
+  authMiddleware,
+  roleMiddleware("admin", "project", "team_memeber"),
+  projectQueryValidation,
+  validate,
+  getAllProjects,
+);
+
+router.get(
+  ":/id",
+  authMiddleware,
+  roleMiddleware("admin", "project_manager", "team_member"),
+  projectIdValidation,
+  validate,
+  getProjectById,
+);
 module.exports = router;

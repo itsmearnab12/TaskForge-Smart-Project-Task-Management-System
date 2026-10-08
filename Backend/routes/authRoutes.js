@@ -5,11 +5,18 @@ const { registerUser, loginUser } = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
+const validate = require("../middleware/validationMiddleware");
+
+const {
+  registerValidation,
+  loginValidation,
+} = require("../middleware/authValidation");
+
 const router = express.Router();
 
-router.post("/register", registerUser);
+router.post("/register", registerValidation, validate, registerUser);
 
-router.post("/login", loginUser);
+router.post("/login", loginValidation, validate, loginUser);
 
 router.get("/protected", authMiddleware, (req, res) => {
   res.status(200).json({
@@ -24,7 +31,7 @@ router.get(
   roleMiddleware("admin"),
   (req, res) => {
     res.status(200).json({
-      message: "Welcome Amin",
+      message: "Welcome Admin",
     });
   },
 );
@@ -41,11 +48,11 @@ router.get(
 );
 
 router.get(
-  "user-test",
+  "/user-test",
   authMiddleware,
   roleMiddleware("admin", "project_manager", "team_member"),
   (req, res) => {
-    res.json(200).json({
+    res.status(200).json({
       message: "Welcome User",
     });
   },

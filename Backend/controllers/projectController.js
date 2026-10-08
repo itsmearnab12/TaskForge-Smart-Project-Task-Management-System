@@ -60,18 +60,61 @@ const createProject = async (req, res) => {
 
 const getAllProjects = async (req, res) => {
   try {
-    const projects = await Project.find()
-      .populate("projectManager", "name email role")
-      .populate("teamMembers", "name email role")
-      .populate("createdBy", "name email role")
-      .sort({ createdAt: -1 });
+    const { search, projectManager, page = 1, limit = 10 } = req.query;
+
+    let filter = {};
+
+    if (search) {
+      filter.$or = [
+        {
+          name: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+        {
+          description: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+      ];
+    }
+
+    if (projectManager) {
+      filter.projectManager = projectManager;
+    }
+
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const totalProjects = await Project.countDocuments(filter);
+
+    const projects = await Project.find(filter)
+      .populate("projectManager", "name email")
+      .populate("teamMembers", "name email")
+      .populate("createdBy", "name email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNumber);
+
+    const totalPages = Math.ceil(totalProjects / limitNumber);
 
     res.status(200).json({
       message: "Projects fetched successfully",
+      pagination: {
+        currentPage: pageNumber,
+        limit: limitNumber,
+        totalProjects,
+        totalPages,
+      },
       projects,
     });
   } catch (error) {
     console.log(error);
+
     res.status(500).json({
       message: "Server error",
     });

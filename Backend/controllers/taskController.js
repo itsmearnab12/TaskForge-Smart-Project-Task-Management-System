@@ -70,17 +70,81 @@ const createTask = async (req, res) => {
 
 const getAllTasks = async (req, res) => {
   try {
-    const tasks = await Task.find()
-      .populate("project", "name description deadline")
-      .populate("assignedTo", "name email role")
-      .populate("createdBy", "name email role")
-      .sort({ createdAt: -1 });
+    const {
+      search,
+      status,
+      priority,
+      project,
+      assignedTo,
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    let filter = {};
+
+    if (search) {
+      filter.$or = [
+        {
+          title: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+        {
+          description: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+      ];
+    }
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (priority) {
+      filter.priority = priority;
+    }
+
+    if (project) {
+      filter.project = project;
+    }
+
+    if (assignedTo) {
+      filter.assignedTo = assignedTo;
+    }
+
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const totalTasks = await Task.countDocuments(filter);
+
+    const tasks = await Task.find(filter)
+      .populate("project", "name")
+      .populate("assignedTo", "name email")
+      .populate("createdBy", "name email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNumber);
+
+    const totalPages = Math.ceil(totalTasks / limitNumber);
 
     res.status(200).json({
       message: "Tasks fetched successfully",
+      pagination: {
+        currentPage: pageNumber,
+        limit: limitNumber,
+        totalTasks,
+        totalPages,
+      },
       tasks,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       message: "Server error",
     });

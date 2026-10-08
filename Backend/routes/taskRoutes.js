@@ -15,6 +15,13 @@ const {
   uploadTaskAttachment,
   getTaskAttachments,
 } = require("../controllers/taskController");
+const {
+  createTaskValidation,
+  taskQueryValidation,
+  taskIdValidation,
+} = require("../middleware/taskValidation");
+const validate = require("../middleware/validationMiddleware");
+const asyncHandler = require("../middleware/asyncHandler");
 
 const router = express.Router();
 
@@ -94,6 +101,33 @@ router.get(
   authMiddleware,
   roleMiddleware("admin", "project_manager", "team_member"),
   getTaskAttachments,
+);
+
+router.post(
+  "/",
+  authMiddleware,
+  roleMiddleware("admin", "project_manager"),
+  createTaskValidation,
+  validate,
+  createTask,
+);
+
+router.get(
+  "/",
+  authMiddleware,
+  roleMiddleware("admin", "project_manager", "team_member"),
+  taskQueryValidation,
+  validate,
+  asyncHandler(getAllTasks),
+);
+
+router.get(
+  ":/id",
+  authMiddleware,
+  roleMiddleware("admin", "project_manager", "team_member"),
+  taskIdValidation,
+  validate,
+  getTaskById,
 );
 
 module.exports = router;

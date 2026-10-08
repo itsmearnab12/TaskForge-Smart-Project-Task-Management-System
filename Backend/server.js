@@ -7,6 +7,7 @@ const projectRoutes = require("./routes/projectRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const commentRoutes = require("./routes/commentRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const errorMiddleware = require("./middleware/errorMiddleware");
 
 dotenv.config();
 
@@ -26,6 +27,8 @@ app.use("/api/project", projectRoutes);
 app.use("/api/task", taskRoutes);
 app.use("/api/comment", commentRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+
+app.use(errorMiddleware);
 
 const port = 3000;
 
